@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+        }
+        .questao {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        .resultado {
+            margin-top: 20px;
+            text-align: center;
+        }
+        .slider-container {
+            margin-bottom: 20px;
+        }
+        .slider {
+            width: 100%;
+        }
+        .slider-label {
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+    </style>
+    <title>Correção de Gabaritos</title>
+</head>
+<body>
+
+<div class="container">
+    <h1>Correção de Gabaritos</h1>
+
+    <!-- Seção para corrigir respostas -->
+    <div class="slider-container">
+        <label class="slider-label" for="numeroQuestoes">Número de Questões: <span id="numQuestoesDisplay">5</span></label>
+        <input type="range" id="numeroQuestoes" class="slider" min="1" max="10" value="5" oninput="gerarQuestoes()">
+    </div>
+
+    <form id="form-gabarito"></form>
+    
+    <button type="button" onclick="corrigirGabarito()">Corrigir</button>
+
+    <div class="resultado" id="resultado"></div>
+
+    <!-- Seção para editar o gabarito -->
+    <h2>Editar Gabarito</h2>
+    <form id="edit-gabarito-form"></form>
+    <button type="button" onclick="salvarGabarito()">Salvar Gabarito</button>
+
+</div>
+
+<script>
+    // Função para gerar dinamicamente as questões
+    function gerarQuestoes() {
+        const numQuestoes = document.getElementById('numeroQuestoes').value;
+        document.getElementById('numQuestoesDisplay').innerText = numQuestoes;
+
+        const form = document.getElementById('form-gabarito');
+        form.innerHTML = '';  // Limpa o formulário
+
+        for (let i = 1; i <= numQuestoes; i++) {
+            const div = document.createElement('div');
+            div.classList.add('questao');
+            div.innerHTML = `
+                <label for="questao${i}">Questão ${i}:</label>
+                <input type="text" id="questao${i}" name="questao${i}" placeholder="Resposta da questão ${i}">
+            `;
+            form.appendChild(div);
+        }
+    }
+
+    // Atualiza as questões quando o slider for alterado
+    gerarQuestoes();
+
+    // Função para corrigir as respostas
+    function corrigirGabarito() {
+        const numQuestoes = document.getElementById('numeroQuestoes').value;
+        const respostas = {};
+
+        for (let i = 1; i <= numQuestoes; i++) {
+            respostas[i] = document.getElementById(`questao${i}`).value;
+        }
+
+        fetch('/corrigir', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ respostas })
+        })
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('resultado').innerHTML = `Sua pontuação: ${data.pontuacao}/${numQuestoes}`;
+        });
+    }
+
+    // Função para carregar o gabarito atual e exibi-lo para edição
+    function carregarGabarito() {
+        fetch('/gabarito', {
+            method: 'GET'
+        })
+        .then(response => response.json())
+        .then(gabarito => {
+            const formEdit = document.getElementById('edit-gabarito-form');
+            formEdit.innerHTML = '';  // Limpa o formulário
+
+            for (const questao in gabarito) {
+                const div = document.createElement('div');
+                div.classList.add('questao');
+                div.innerHTML = `
+                    <label for="edit-questao${questao}">Questão ${questao}:</label>
+                    <input type="text" id="edit-questao${questao}" value="${gabarito[questao]}" placeholder="Resposta da questão ${questao}">
+                `;
+                formEdit.appendChild(div);
+            }
+        });
+    }
+
+    // Função para salvar o gabarito alterado
+    function salvarGabarito() {
+        const formEdit = document.getElementById('edit-gabarito-form');
+        const inputs = formEdit.querySelectorAll('input');
+        const gabaritoAtualizado = {};
+
+        inputs.forEach(input => {
+            const questao = input.id.replace('edit-questao', '');
+            gabaritoAtualizado[questao] = input.value;
+        });
+
+        fetch('/gabarito', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(gabaritoAtualizado)
+        })
+        .then(response => response.json())
+        .then(data => {
+            alert(data.status);
+        });
+    }
+
+    // Carrega o gabarito atual ao iniciar a página
+    carregarGabarito();
+
+</script>
+
+</body>
+</html>
