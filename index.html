@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Correção de Gabaritos</title>
+    <link rel="stylesheet" href="static/css/styles.css">
+</head>
+<body>
+
+<div class="container">
+    <h1>Correção de Gabaritos</h1>
+
+    <!-- Seção para corrigir respostas -->
+    <div class="slider-container">
+        <label class="slider-label" for="numeroQuestoes">Número de Questões: <span id="numQuestoesDisplay">5</span></label>
+        <input type="range" id="numeroQuestoes" class="slider" min="1" max="10" value="5" oninput="gerarQuestoes()">
+    </div>
+
+    <form id="form-gabarito"></form>
+    
+    <button type="button" onclick="corrigirGabarito()">Corrigir</button>
+
+    <div class="resultado" id="resultado"></div>
+
+    <!-- Seção para editar o gabarito -->
+    <h2>Editar Gabarito</h2>
+    <form id="edit-gabarito-form"></form>
+    <button type="button" onclick="salvarGabarito()">Salvar Gabarito</button>
+
+</div>
+
+<script src="static/js/main.js"></script>
+
+</body>
+</html>
